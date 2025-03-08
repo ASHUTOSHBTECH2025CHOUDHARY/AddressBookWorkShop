@@ -12,13 +12,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AddressService implements IAddressService {
-
-    private final AddressRepository addressRepository;
-
     @Autowired
-    public AddressService(AddressRepository addressRepository) {
-        this.addressRepository = addressRepository;
-    }
+    AddressRepository addressRepository;
 
     @Override
     public AddressDTO save(AddressDTO addressDTO) {

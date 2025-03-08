@@ -11,12 +11,8 @@ import java.util.List;
 @RequestMapping("/addresses")
 public class AddressController {
 
-    private final IAddressService iAddressService;
-
     @Autowired
-    public AddressController(IAddressService iAddressService) {
-        this.iAddressService = iAddressService;
-    }
+    IAddressService iAddressService;
 
     @GetMapping
     public List<AddressDTO> getAll() {

@@ -20,6 +20,12 @@ public class AddressService implements IAddressService {
         this.addressRepository = addressRepository;
     }
 
+    @Override
+    public AddressDTO save(AddressDTO addressDTO) {
+        Address address = convertToEntity(addressDTO);
+        Address savedAddress = addressRepository.save(address);
+        return convertToDTO(savedAddress);
+    }
 
     @Override
     public List<AddressDTO> getAll() {
@@ -35,6 +41,10 @@ public class AddressService implements IAddressService {
                 .orElse(null);
     }
 
+    @Override
+    public void delete(Long id) {
+        addressRepository.deleteById(id);
+    }
 
     private AddressDTO convertToDTO(Address address) {
         return new AddressDTO(address.getId(), address.getName(), address.getPhone(), address.getEmail(), address.getCity());

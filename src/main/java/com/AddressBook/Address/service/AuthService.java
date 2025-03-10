@@ -1,5 +1,6 @@
 package com.AddressBook.Address.service;
 
+import com.AddressBook.Address.dto.ResetPasswordDTO;
 import com.AddressBook.Address.dto.UserDTO;
 import com.AddressBook.Address.dto.LoginDTO;
 import com.AddressBook.Address.model.User;
@@ -21,6 +22,8 @@ public class AuthService {
     @Autowired
     JwtUtil jwtUtil;
 
+    @Autowired
+    EmailService emailService;
     public String registerUser(UserDTO userDTO) {
         Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
         if (existingUser.isPresent()) {
@@ -45,4 +48,32 @@ public class AuthService {
         }
         return "Invalid email or password!";
     }
+
+    public String forgotPassword(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return "User with this email does not exist!";
+        }
+
+        String resetToken = jwtUtil.generateToken(email);  // Generate reset token
+        emailService.sendResetEmail(email, resetToken);    // Send reset email
+
+        return "Password reset email sent successfully!";
+    }
+
+    public String resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        String email = jwtUtil.extractUsername(resetPasswordDTO.getToken());
+
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return "Invalid or expired token!";
+        }
+
+        User existingUser = user.get();
+        existingUser.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
+        userRepository.save(existingUser);
+
+        return "Password reset successful!";
+    }
+
 }

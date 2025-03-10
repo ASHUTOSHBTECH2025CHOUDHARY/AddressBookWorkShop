@@ -18,11 +18,10 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour expiry
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // 30 min expiry
                 .signWith(SECRET_KEY)
                 .compact();
     }
-
     public Claims validateToken(String token) {
         try {
             return Jwts.parserBuilder()
@@ -33,5 +32,13 @@ public class JwtUtil {
         } catch (Exception e) {
             return null; // Invalid token
         }
+    }
+    public String extractUsername(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
     }
 }

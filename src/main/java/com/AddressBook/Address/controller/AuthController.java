@@ -1,5 +1,7 @@
 package com.AddressBook.Address.controller;
 
+import com.AddressBook.Address.dto.ForgotPasswordDTO;
+import com.AddressBook.Address.dto.ResetPasswordDTO;
 import com.AddressBook.Address.dto.UserDTO;
 import com.AddressBook.Address.dto.LoginDTO;
 import com.AddressBook.Address.service.AuthService;
@@ -21,5 +23,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody LoginDTO loginDTO) {
         return ResponseEntity.ok(authService.loginUser(loginDTO));
+    }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+        return ResponseEntity.ok(authService.forgotPassword(forgotPasswordDTO.getEmail()));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO resetPasswordDTO) {
+        return ResponseEntity.ok(authService.resetPassword(resetPasswordDTO));
     }
 }

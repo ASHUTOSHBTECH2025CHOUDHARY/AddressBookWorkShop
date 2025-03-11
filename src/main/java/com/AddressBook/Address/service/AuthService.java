@@ -9,21 +9,32 @@ import com.AddressBook.Address.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Optional;
 
 @Service
 public class AuthService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    BCryptPasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    JwtUtil jwtUtil;
+    private JwtUtil jwtUtil;
 
     @Autowired
-    EmailService emailService;
+    private EmailService emailService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Value("${rabbitmq.exchange.name}")
+    private String exchange;
+
+    @Value("${rabbitmq.user.routing.key}")
+    private String userRoutingKey;
     public String registerUser(UserDTO userDTO) {
         Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
         if (existingUser.isPresent()) {
@@ -37,8 +48,14 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         userRepository.save(user);
+
+        // Publish user registration event
+        rabbitTemplate.convertAndSend(exchange, userRoutingKey, userDTO);
+        System.out.println("📨 Sent User Registration Event to RabbitMQ: " + userDTO);
+
         return "User registered successfully!";
     }
+
 
     public String loginUser(LoginDTO loginDTO) {
         Optional<User> user = userRepository.findByEmail(loginDTO.getEmail());

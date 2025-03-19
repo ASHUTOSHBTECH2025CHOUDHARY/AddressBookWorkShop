@@ -3,18 +3,16 @@ package com.AddressBook.Address.service;
 import com.AddressBook.Address.dto.ResetPasswordDTO;
 import com.AddressBook.Address.dto.UserDTO;
 import com.AddressBook.Address.dto.LoginDTO;
-import com.AddressBook.Address.interfaces.IAuthService;
 import com.AddressBook.Address.model.User;
 import com.AddressBook.Address.repository.UserRepository;
 import com.AddressBook.Address.util.JwtUtil;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class AuthService implements IAuthService {
+public class AuthService {
     @Autowired
     UserRepository userRepository;
 
@@ -26,18 +24,16 @@ public class AuthService implements IAuthService {
 
     @Autowired
     EmailService emailService;
-
-    @Autowired
-    ModelMapper modelMapper;
-
     public String registerUser(UserDTO userDTO) {
         Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
         if (existingUser.isPresent()) {
             return "Email is already registered!";
         }
 
-        // Convert DTO to Entity using ModelMapper
-        User user = UserDTO.toEntity(userDTO, modelMapper);
+        User user = new User();
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setEmail(userDTO.getEmail());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         userRepository.save(user);
@@ -59,8 +55,8 @@ public class AuthService implements IAuthService {
             return "User with this email does not exist!";
         }
 
-        String resetToken = jwtUtil.generateToken(email);
-        emailService.sendResetEmail(email, resetToken);
+        String resetToken = jwtUtil.generateToken(email);  // Generate reset token
+        emailService.sendResetEmail(email, resetToken);    // Send reset email
 
         return "Password reset email sent successfully!";
     }
@@ -79,4 +75,5 @@ public class AuthService implements IAuthService {
 
         return "Password reset successful!";
     }
+
 }

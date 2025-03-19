@@ -1,0 +1,81 @@
+2025-03-19 12:13:46 [restartedMain] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.com.addressbook' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.com.addressbook
+    Value: "DEBUG  # Enable detailed logging for debugging"
+    Origin: class path resource [application-dev.properties] - 41:31
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.DEBUG  # Enable detailed logging for debugging)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+
+2025-03-19 12:13:56 [restartedMain] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.com.addressbook' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.com.addressbook
+    Value: "DEBUG  # Enable detailed logging for debugging"
+    Origin: class path resource [application-dev.properties] - 16:31
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.DEBUG  # Enable detailed logging for debugging)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+
+2025-03-19 13:22:03 [restartedMain] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to bind properties under 'logging.level.com.addressbook' to org.springframework.boot.logging.LogLevel:
+
+    Property: logging.level.com.addressbook
+    Value: "DEBUG  # Enable detailed logging for debugging"
+    Origin: class path resource [application-DEV.properties] - 16:31
+    Reason: failed to convert java.lang.String to org.springframework.boot.logging.LogLevel (caused by java.lang.IllegalArgumentException: No enum constant org.springframework.boot.logging.LogLevel.DEBUG  # Enable detailed logging for debugging)
+
+Action:
+
+Update your application's configuration. The following values are valid:
+
+    DEBUG
+    ERROR
+    FATAL
+    INFO
+    OFF
+    TRACE
+    WARN
+

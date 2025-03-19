@@ -3,9 +3,12 @@ package com.AddressBook.Address.service;
 import com.AddressBook.Address.dto.ResetPasswordDTO;
 import com.AddressBook.Address.dto.UserDTO;
 import com.AddressBook.Address.dto.LoginDTO;
+import com.AddressBook.Address.exception.UserAlreadyExistsException;
+import com.AddressBook.Address.exception.UserNotFoundException;
 import com.AddressBook.Address.model.User;
 import com.AddressBook.Address.repository.UserRepository;
 import com.AddressBook.Address.util.JwtUtil;
+import org.modelmapper.ModelMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +17,7 @@ import java.util.Optional;
 
 @Service
 public class AuthService {
+
     @Autowired
     UserRepository userRepository;
 
@@ -24,48 +28,42 @@ public class AuthService {
     JwtUtil jwtUtil;
 
     @Autowired
-    EmailService emailService;
-
-    @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     public String registerUser(UserDTO userDTO) {
-        Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
-        if (existingUser.isPresent()) {
-            return "Email is already registered!";
+        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
+            throw new UserAlreadyExistsException("Email is already registered!");
         }
 
-        User user = new User();
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setEmail(userDTO.getEmail());
+        User user = modelMapper.map(userDTO, User.class);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         userRepository.save(user);
-
-        // Publish message to RabbitMQ
         rabbitTemplate.convertAndSend("AddressBookExchange", "userKey", userDTO.getEmail());
 
         return "User registered successfully!";
     }
 
     public String loginUser(LoginDTO loginDTO) {
-        Optional<User> user = userRepository.findByEmail(loginDTO.getEmail());
+        User user = userRepository.findByEmail(loginDTO.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("Invalid email or password!"));
 
-        if (user.isPresent() && passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
-            return jwtUtil.generateToken(loginDTO.getEmail());
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
+            throw new UserNotFoundException("Invalid email or password!");
         }
-        return "Invalid email or password!";
+
+        return jwtUtil.generateToken(loginDTO.getEmail());
     }
 
     public String forgotPassword(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            return "User with this email does not exist!";
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User with this email does not exist!"));
 
         String resetToken = jwtUtil.generateToken(email);
-        emailService.sendResetEmail(email, resetToken);
+        rabbitTemplate.convertAndSend("AddressBookExchange", "userKey", email);
 
         return "Password reset email sent successfully!";
     }
@@ -73,14 +71,11 @@ public class AuthService {
     public String resetPassword(ResetPasswordDTO resetPasswordDTO) {
         String email = jwtUtil.extractUsername(resetPasswordDTO.getToken());
 
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            return "Invalid or expired token!";
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Invalid or expired token!"));
 
-        User existingUser = user.get();
-        existingUser.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
-        userRepository.save(existingUser);
+        user.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
+        userRepository.save(user);
 
         return "Password reset successful!";
     }

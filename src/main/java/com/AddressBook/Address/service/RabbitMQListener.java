@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 public class RabbitMQListener {
 
     @RabbitListener(queues = "UserQueue")
-    public void handleUserRegistration(String email) {
+    public void handleUserEvent(String email) {
         System.out.println("📧 Sending registration email to: " + email);
     }
 
     @RabbitListener(queues = "AddressQueue")
-    public void handleNewAddress(String email) {
-        System.out.println("📍 New address added: " + email);
+    public void handleAddressEvent(String message) {
+        System.out.println("📍 New address added: " + message);
     }
 }

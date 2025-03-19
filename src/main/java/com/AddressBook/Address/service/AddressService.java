@@ -4,6 +4,7 @@ import com.AddressBook.Address.dto.AddressDTO;
 import com.AddressBook.Address.interfaces.IAddressService;
 import com.AddressBook.Address.model.Address;
 import com.AddressBook.Address.repository.AddressRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,6 +23,9 @@ public class AddressService implements IAddressService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     private static final String CACHE_KEY = "addresses";
 
@@ -55,6 +59,9 @@ public class AddressService implements IAddressService {
         Address address = convertToEntity(addressDTO);
         Address savedAddress = addressRepository.save(address);
         redisTemplate.delete(CACHE_KEY);
+
+        // Publish message to RabbitMQ
+        rabbitTemplate.convertAndSend("AddressBookExchange", "addressKey", addressDTO.getEmail());
 
         return convertToDTO(savedAddress);
     }

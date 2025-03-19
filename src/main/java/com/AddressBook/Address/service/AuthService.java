@@ -6,6 +6,7 @@ import com.AddressBook.Address.dto.LoginDTO;
 import com.AddressBook.Address.model.User;
 import com.AddressBook.Address.repository.UserRepository;
 import com.AddressBook.Address.util.JwtUtil;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,10 @@ public class AuthService {
 
     @Autowired
     EmailService emailService;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     public String registerUser(UserDTO userDTO) {
         Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
         if (existingUser.isPresent()) {
@@ -37,6 +42,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         userRepository.save(user);
+
+        // Publish message to RabbitMQ
+        rabbitTemplate.convertAndSend("AddressBookExchange", "userKey", userDTO.getEmail());
+
         return "User registered successfully!";
     }
 
@@ -55,8 +64,8 @@ public class AuthService {
             return "User with this email does not exist!";
         }
 
-        String resetToken = jwtUtil.generateToken(email);  // Generate reset token
-        emailService.sendResetEmail(email, resetToken);    // Send reset email
+        String resetToken = jwtUtil.generateToken(email);
+        emailService.sendResetEmail(email, resetToken);
 
         return "Password reset email sent successfully!";
     }
@@ -75,5 +84,4 @@ public class AuthService {
 
         return "Password reset successful!";
     }
-
 }
